@@ -1,0 +1,619 @@
+openapi: 3.1.0
+info:
+  title: FoodRush Catalogue Service
+  version: 1.0.0
+  description: Catalogue and menu management with image uploads to OCI Object Storage
+  contact:
+    name: FoodRush Engineering
+
+servers:
+  - url: http://localhost:3002
+    description: Local development
+
+paths:
+  /healthz:
+    get:
+      operationId: getLiveness
+      summary: Liveness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                required: [status]
+
+  /readyz:
+    get:
+      operationId: getReadiness
+      summary: Readiness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+
+  /catalogues:
+    post:
+      operationId: createCatalogue
+      summary: Create a new catalogue
+      tags: [Catalogues]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCatalogueInput'
+      responses:
+        '201':
+          description: Catalogue created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalogue'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      operationId: listCatalogues
+      summary: List catalogues by restaurant
+      tags: [Catalogues]
+      parameters:
+        - name: restaurantId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of catalogues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Catalogue'
+        '400':
+          description: Missing restaurantId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /catalogues/{id}:
+    get:
+      operationId: getCatalogue
+      summary: Get catalogue by ID
+      tags: [Catalogues]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Catalogue details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalogue'
+        '404':
+          description: Catalogue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      operationId: updateCatalogue
+      summary: Update a catalogue
+      tags: [Catalogues]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCatalogueInput'
+      responses:
+        '200':
+          description: Catalogue updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalogue'
+        '404':
+          description: Catalogue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      operationId: deleteCatalogue
+      summary: Delete a catalogue
+      tags: [Catalogues]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Catalogue deleted
+        '404':
+          description: Catalogue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /catalogues/{id}/image:
+    post:
+      operationId: uploadCatalogueImage
+      summary: Upload an image for a catalogue
+      tags: [Catalogues]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+      responses:
+        '200':
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageUploadResult'
+        '400':
+          description: Invalid file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Catalogue not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /menus:
+    post:
+      operationId: createMenuItem
+      summary: Create a new menu item
+      tags: [Menus]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMenuItemInput'
+      responses:
+        '201':
+          description: Menu item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      operationId: listMenuItems
+      summary: List menu items with filters
+      tags: [Menus]
+      parameters:
+        - name: catalogueId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: restaurantId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: available
+          in: query
+          schema:
+            type: string
+            enum: ['true', 'false']
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of menu items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MenuItem'
+        '400':
+          description: Missing filter parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /menus/{id}:
+    get:
+      operationId: getMenuItem
+      summary: Get menu item by ID
+      tags: [Menus]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Menu item details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+        '404':
+          description: Menu item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      operationId: updateMenuItem
+      summary: Update a menu item
+      tags: [Menus]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMenuItemInput'
+      responses:
+        '200':
+          description: Menu item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+        '404':
+          description: Menu item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      operationId: deleteMenuItem
+      summary: Delete a menu item
+      tags: [Menus]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Menu item deleted
+        '404':
+          description: Menu item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /menus/{id}/image:
+    post:
+      operationId: uploadMenuItemImage
+      summary: Upload an image for a menu item
+      tags: [Menus]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+      responses:
+        '200':
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageUploadResult'
+        '400':
+          description: Invalid file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Menu item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Catalogue:
+      type: object
+      required: [id, restaurantId, name, description, category, isActive, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateCatalogueInput:
+      type: object
+      required: [restaurantId, name, description, category]
+      properties:
+        restaurantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+
+    UpdateCatalogueInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        isActive:
+          type: boolean
+
+    MenuItem:
+      type: object
+      required: [id, catalogueId, restaurantId, name, description, price, currency, category, dietaryTags, isAvailable, preparationTimeMinutes, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        catalogueId:
+          type: string
+          format: uuid
+        restaurantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        category:
+          type: string
+        dietaryTags:
+          type: array
+          items:
+            type: string
+        isAvailable:
+          type: boolean
+        preparationTimeMinutes:
+          type: integer
+          minimum: 1
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateMenuItemInput:
+      type: object
+      required: [catalogueId, restaurantId, name, description, price, currency, category, preparationTimeMinutes]
+      properties:
+        catalogueId:
+          type: string
+          format: uuid
+        restaurantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        category:
+          type: string
+        dietaryTags:
+          type: array
+          items:
+            type: string
+        preparationTimeMinutes:
+          type: integer
+          minimum: 1
+
+    UpdateMenuItemInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+        category:
+          type: string
+        dietaryTags:
+          type: array
+          items:
+            type: string
+        isAvailable:
+          type: boolean
+        preparationTimeMinutes:
+          type: integer
+          minimum: 1
+
+    ImageUploadResult:
+      type: object
+      required: [objectName, url, contentType, size]
+      properties:
+        objectName:
+          type: string
+        url:
+          type: string
+          format: uri
+        contentType:
+          type: string
+        size:
+          type: integer
+
+    ReadinessResponse:
+      type: object
+      required: [status, checks]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]
+        checks:
+          type: object
+          properties:
+            nosql:
+              type: string
+              enum: [up, down]
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

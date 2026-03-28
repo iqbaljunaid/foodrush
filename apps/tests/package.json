@@ -1,0 +1,33 @@
+{
+  "name": "@foodrush/tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:components": "jest --config jest.config.ts --coverage",
+    "test:e2e:ios": "detox test --configuration ios.sim.release",
+    "test:e2e:android": "detox test --configuration android.emu.release",
+    "test:a11y:contrast": "ts-node a11y/contrast-check.ts",
+    "test:perf:tti": "ts-node performance/customer-tti.ts",
+    "test:perf:fps": "ts-node performance/driver-map-fps.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@foodrush/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^12.4.0",
+    "@types/jest": "^29.5.0",
+    "@types/react": "^18.3.0",
+    "@types/react-test-renderer": "^18.3.0",
+    "detox": "^20.27.0",
+    "jest": "^29.7.0",
+    "jest-expo": "~52.0.0",
+    "react": "^18.3.1",
+    "react-native": "^0.76.0",
+    "react-test-renderer": "^18.3.1",
+    "ts-jest": "^29.2.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.6.0"
+  }
+}

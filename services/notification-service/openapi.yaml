@@ -1,0 +1,180 @@
+openapi: 3.1.0
+info:
+  title: FoodRush Notification Service
+  version: 1.0.0
+  description: Notification service for push, SMS, and email delivery via OCI
+  contact:
+    name: FoodRush Engineering
+
+servers:
+  - url: http://localhost:3005
+    description: Local development
+
+paths:
+  /healthz:
+    get:
+      operationId: getLiveness
+      summary: Liveness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                required: [status]
+
+  /readyz:
+    get:
+      operationId: getReadiness
+      summary: Readiness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+
+  /notifications:
+    post:
+      operationId: sendNotification
+      summary: Send a notification
+      tags: [Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendNotificationInput'
+      responses:
+        '201':
+          description: Notification sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResult'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Notification delivery failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResult'
+
+  /notifications/{id}:
+    get:
+      operationId: getNotificationStatus
+      summary: Get notification status by ID
+      tags: [Notifications]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Notification status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResult'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    NotificationChannel:
+      type: string
+      enum: [push, sms, email]
+
+    NotificationStatus:
+      type: string
+      enum: [pending, sent, failed]
+
+    SendNotificationInput:
+      type: object
+      required: [recipientId, channel, destination, body]
+      properties:
+        recipientId:
+          type: string
+          format: uuid
+        channel:
+          $ref: '#/components/schemas/NotificationChannel'
+        destination:
+          type: string
+          description: Device token (push), phone number (sms), or email address (email)
+        subject:
+          type: string
+        body:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+
+    NotificationResult:
+      type: object
+      required: [id, recipientId, channel, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        recipientId:
+          type: string
+          format: uuid
+        channel:
+          $ref: '#/components/schemas/NotificationChannel'
+        status:
+          $ref: '#/components/schemas/NotificationStatus'
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+
+    ReadinessResponse:
+      type: object
+      required: [status, checks]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]
+        checks:
+          type: object
+          properties:
+            kafka:
+              type: string
+              enum: [up, down]
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

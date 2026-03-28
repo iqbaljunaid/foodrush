@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "FoodRush performance test results template",
+  "metadata": {
+    "project": "foodrush",
+    "date": "",
+    "commit": "",
+    "device": "",
+    "os": "",
+    "buildType": "release"
+  },
+  "thresholds": {
+    "customer_tti_ms": 1500,
+    "driver_map_fps": 55,
+    "api_p95_latency_ms": 300
+  },
+  "results": {
+    "customer_tti": {
+      "runs": [],
+      "summary": {
+        "avg_ms": 0,
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "min_ms": 0,
+        "max_ms": 0,
+        "passed": false
+      }
+    },
+    "driver_map_fps": {
+      "runs": [],
+      "summary": {
+        "avg_fps": 0,
+        "min_fps": 0,
+        "max_fps": 0,
+        "dropped_frames": 0,
+        "events_per_second": 100,
+        "passed": false
+      }
+    },
+    "api_latency": {
+      "endpoints": [],
+      "summary": {
+        "p50_ms": 0,
+        "p95_ms": 0,
+        "p99_ms": 0,
+        "passed": false
+      }
+    }
+  },
+  "verdict": {
+    "all_passed": false,
+    "failures": []
+  }
+}

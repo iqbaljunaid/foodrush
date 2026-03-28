@@ -1,8 +1,8 @@
-# UberEats OCI Platform — Claude Code Swarm Plan
+# foodrush OCI Platform — Claude Code Swarm Plan
 
 ## Project overview
 
-Build a production-grade UberEats-style food delivery platform on Oracle Cloud
+Build a production-grade foodrush-style food delivery platform on Oracle Cloud
 Infrastructure (OCI) using a multi-agent swarm. Six bounded-context services run
 on OCI Container Engine for Kubernetes (OKE). All agents share this CLAUDE.md as
 ground truth for architecture decisions, naming conventions, and coding standards.
@@ -60,9 +60,9 @@ claude
 
 ```
 <project>-<env>-<resource>-<suffix>
-ubereats-prod-oke-cluster-01
-ubereats-prod-vcn-main
-ubereats-prod-mysql-primary
+foodrush-prod-oke-cluster-01
+foodrush-prod-vcn-main
+foodrush-prod-mysql-primary
 ```
 
 ### Git worktree isolation
@@ -190,9 +190,9 @@ align your producer to this shape before T19.
 ## Orchestrator spawn prompt
 
 ```
-You are the team lead for the ubereats-oci swarm.
+You are the team lead for the foodrush-oci swarm.
 
-Goal: implement the UberEats OCI platform as specified in CLAUDE.md.
+Goal: implement the FoodRush OCI platform as specified in CLAUDE.md.
 
 Your responsibilities:
 1. Create the task pool from the Wave 1–4 table in CLAUDE.md.
@@ -212,7 +212,7 @@ Use Teammate broadcast to announce wave transitions.
 ### edge-agent
 
 ```
-You are edge-agent on the ubereats-oci swarm.
+You are edge-agent on the foodrush-oci swarm.
 Working directory: worktree/edge
 File ownership: edge/**
 
@@ -225,21 +225,21 @@ Do not edit files outside worktree/edge.
 ### user-agent
 
 ```
-You are user-agent on the ubereats-oci swarm.
+You are user-agent on the foodrush-oci swarm.
 Working directory: worktree/user-svc
 File ownership: services/user-service/**, services/catalogue-service/**
 
 Read CLAUDE.md for architecture decisions and file ownership rules.
 Claim and complete T09, T11 from the task list.
 After T09 is done, message order-agent: auth middleware is exported
-from @ubereats/user-service/middleware so they can protect their routes.
+from @foodrush/user-service/middleware so they can protect their routes.
 Send status to orchestrator after each task completes.
 ```
 
 ### order-agent
 
 ```
-You are order-agent on the ubereats-oci swarm.
+You are order-agent on the foodrush-oci swarm.
 Working directory: worktree/order-svc
 File ownership: services/order-service/**, services/payment-service/**,
                services/notification-service/**
@@ -256,7 +256,7 @@ dispatch-agent on shared event schemas before starting T18.
 ### dispatch-agent
 
 ```
-You are dispatch-agent on the ubereats-oci swarm.
+You are dispatch-agent on the foodrush-oci swarm.
 Working directory: worktree/dispatch-svc
 File ownership: services/dispatch-service/**, services/location-service/**
 
@@ -273,7 +273,7 @@ Send status to orchestrator after each task.
 ### data-agent
 
 ```
-You are data-agent on the ubereats-oci swarm.
+You are data-agent on the foodrush-oci swarm.
 Working directory: worktree/data-layer
 File ownership: infra/terraform/data-stores/**
 
@@ -289,7 +289,7 @@ Send status to orchestrator when all four tasks complete.
 ### infra-agent
 
 ```
-You are infra-agent on the ubereats-oci swarm.
+You are infra-agent on the foodrush-oci swarm.
 Working directory: worktree/infra
 File ownership: infra/terraform/network/**, infra/terraform/compute/**,
                infra/terraform/security/**, infra/k8s/**
@@ -305,7 +305,7 @@ Send status to orchestrator after each wave's tasks complete.
 ### test-agent
 
 ```
-You are test-agent on the ubereats-oci swarm.
+You are test-agent on the foodrush-oci swarm.
 Working directory: worktree/tests
 File ownership: tests/**
 
@@ -336,7 +336,7 @@ Report all failures to orchestrator with file + line references.
 ## Repo structure (target)
 
 ```
-ubereats-oci/
+FoorRush/
 ├── CLAUDE.md                        ← this file (orchestrator owns)
 ├── .claude/
 │   └── settings.json                ← CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
@@ -383,7 +383,7 @@ cat > .claude/settings.json << 'EOF'
 EOF
 
 # 3. Create git worktrees
-git init ubereats-oci && cd ubereats-oci
+git init foodrush-oci && cd foodrush-oci
 git commit --allow-empty -m "chore: init"
 git worktree add worktree/edge          -b feat/edge-layer
 git worktree add worktree/user-svc      -b feat/user-service

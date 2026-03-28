@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: foodrush-config
+  namespace: foodrush
+  labels:
+    app.kubernetes.io/part-of: foodrush
+data:
+  # Shared configuration
+  LOG_LEVEL: "info"
+  NODE_ENV: "production"
+  KAFKA_SSL: "true"
+  REDIS_TLS: "true"
+  MYSQL_PORT: "3306"
+  REDIS_PORT: "6379"
+
+  # Service-specific non-secret config
+  # Order service
+  ORDER_MYSQL_DATABASE: "foodrush_orders"
+  ORDER_MYSQL_POOL_SIZE: "10"
+  ORDER_KAFKA_CLIENT_ID: "order-service"
+
+  # Payment service
+  PAYMENT_MYSQL_DATABASE: "foodrush_payments"
+  PAYMENT_MYSQL_POOL_SIZE: "10"
+  STRIPE_API_VERSION: "2024-12-18.acacia"
+
+  # Catalogue service
+  NOSQL_CATALOGUE_TABLE: "foodrush_prod_catalogue"
+  NOSQL_MENUS_TABLE: "foodrush_prod_menus"
+  MAX_FILE_SIZE_BYTES: "5242880"
+  ALLOWED_MIME_TYPES: "image/jpeg,image/png,image/webp"
+
+  # Dispatch service
+  DISPATCH_KAFKA_CLIENT_ID: "dispatch-service"
+  DEFAULT_RADIUS_KM: "5"
+  MAX_RADIUS_KM: "15"
+  MAX_COURIER_CANDIDATES: "10"
+
+  # Location service
+  DEFAULT_PICKUP_RADIUS_M: "100"
+  DEFAULT_DELIVERY_RADIUS_M: "50"
+
+  # Notification service
+  NOTIFICATION_KAFKA_CLIENT_ID: "notification-service"
+  NOTIFICATION_KAFKA_GROUP_ID: "notification-service-group"
+  EMAIL_SENDER_NAME: "FoodRush"

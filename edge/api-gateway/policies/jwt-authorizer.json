@@ -1,0 +1,31 @@
+{
+  "type": "JWT_AUTHENTICATION",
+  "token_header": "Authorization",
+  "token_auth_scheme": "Bearer",
+  "is_anonymous_access_allowed": true,
+  "issuers": ["${idcs_url}"],
+  "audiences": ["${idcs_client_id}"],
+  "verify_claims": [
+    {
+      "key": "iss",
+      "values": ["${idcs_url}"],
+      "is_required": true
+    }
+  ],
+  "public_keys": {
+    "type": "REMOTE_JWKS",
+    "uri": "${idcs_url}/admin/v1/SigningCert/jwk",
+    "max_cache_duration_in_hours": 1,
+    "is_ssl_verify_disabled": false
+  },
+  "authorization_policies": {
+    "anonymous": {
+      "type": "ANONYMOUS",
+      "description": "No JWT required. Used for public endpoints like /auth, GET /catalogues, GET /menus."
+    },
+    "authenticated": {
+      "type": "ANY",
+      "description": "Valid JWT required. Used for /orders, /payments, /users, /dispatch, /locations, /notifications."
+    }
+  }
+}

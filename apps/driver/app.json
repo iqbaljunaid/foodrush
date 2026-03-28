@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "FoodRush Driver",
+    "slug": "foodrush-driver",
+    "scheme": "foodrush-driver",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0A"
+    },
+    "sdkVersion": "52.0.0",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.foodrush.driver",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "FoodRush Driver needs your location to show your position on the map and match you with nearby deliveries.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "FoodRush Driver uses your location in the background to share your position with customers during active deliveries.",
+        "NSLocationAlwaysUsageDescription": "FoodRush Driver uses background location to keep customers updated on delivery progress.",
+        "NSCameraUsageDescription": "FoodRush Driver needs camera access to take pickup and delivery confirmation photos.",
+        "UIBackgroundModes": ["location", "fetch"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0A0A"
+      },
+      "package": "com.foodrush.driver",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ]
+    },
+    "plugins": [
+      "expo-splash-screen",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "FoodRush Driver uses your location in the background to keep customers updated on delivery progress.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "FoodRush Driver needs camera access for pickup and delivery photos."
+        }
+      ],
+      "expo-task-manager",
+      "expo-background-fetch",
+      ["react-native-reanimated/plugin"]
+    ],
+    "extra": {
+      "APP_ID": "driver"
+    }
+  }
+}

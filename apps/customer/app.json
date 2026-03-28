@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "FoodRush",
+    "slug": "foodrush",
+    "scheme": "foodrush",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF6B35"
+    },
+    "sdkVersion": "52.0.0",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.foodrush.customer",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "FoodRush needs your location to show nearby restaurants and delivery estimates."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FF6B35"
+      },
+      "package": "com.foodrush.customer"
+    },
+    "plugins": [
+      "expo-splash-screen",
+      [
+        "react-native-reanimated/plugin"
+      ]
+    ],
+    "extra": {
+      "APP_ID": "customer"
+    }
+  }
+}

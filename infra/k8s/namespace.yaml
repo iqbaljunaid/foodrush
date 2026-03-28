@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: foodrush
+  labels:
+    app.kubernetes.io/part-of: foodrush
+    app.kubernetes.io/managed-by: kubectl

@@ -1,0 +1,29 @@
+{
+  "allowed_origins": [
+    "https://foodrush.com",
+    "https://www.foodrush.com"
+  ],
+  "allowed_methods": [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS"
+  ],
+  "allowed_headers": [
+    "Authorization",
+    "Content-Type",
+    "Accept",
+    "X-Request-Id",
+    "X-Idempotency-Key"
+  ],
+  "exposed_headers": [
+    "X-Request-Id",
+    "X-RateLimit-Limit",
+    "X-RateLimit-Remaining",
+    "X-RateLimit-Reset"
+  ],
+  "is_allow_credentials_allowed": true,
+  "max_age_in_seconds": 3600
+}

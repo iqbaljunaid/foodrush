@@ -1,0 +1,330 @@
+openapi: 3.1.0
+info:
+  title: FoodRush Payment Service
+  version: 1.0.0
+  description: Payment service with Stripe integration, idempotency keys, and refund flow
+  contact:
+    name: FoodRush Engineering
+
+servers:
+  - url: http://localhost:3006
+    description: Local development
+
+paths:
+  /healthz:
+    get:
+      operationId: getLiveness
+      summary: Liveness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                required: [status]
+
+  /readyz:
+    get:
+      operationId: getReadiness
+      summary: Readiness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+
+  /payments:
+    post:
+      operationId: createPayment
+      summary: Create and authorize a payment
+      description: |
+        Creates a Stripe PaymentIntent with manual capture. Uses the provided
+        idempotency key to prevent duplicate charges. Returns existing payment
+        if the idempotency key was already used.
+      tags: [Payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentInput'
+      responses:
+        '201':
+          description: Payment authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '200':
+          description: Existing payment returned (idempotency key match)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '402':
+          description: Payment failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+
+  /payments/{id}:
+    get:
+      operationId: getPayment
+      summary: Get payment by ID
+      tags: [Payments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/order/{orderId}:
+    get:
+      operationId: getPaymentsByOrder
+      summary: Get payments by order ID
+      tags: [Payments]
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of payments for the order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+
+  /payments/{id}/capture:
+    post:
+      operationId: capturePayment
+      summary: Capture an authorized payment
+      tags: [Payments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CapturePaymentInput'
+      responses:
+        '200':
+          description: Payment captured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Payment cannot be captured in current state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/{id}/refund:
+    post:
+      operationId: refundPayment
+      summary: Refund a payment (full or partial)
+      tags: [Payments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundPaymentInput'
+      responses:
+        '200':
+          description: Payment refunded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Invalid refund amount
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Payment cannot be refunded in current state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    PaymentStatus:
+      type: string
+      enum:
+        - pending
+        - authorized
+        - captured
+        - failed
+        - refunded
+        - partially_refunded
+
+    CreatePaymentInput:
+      type: object
+      required: [orderId, customerId, amount, paymentMethodId, idempotencyKey]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+        currency:
+          type: string
+          default: USD
+          minLength: 3
+          maxLength: 3
+        paymentMethodId:
+          type: string
+        idempotencyKey:
+          type: string
+          description: Client-generated key to prevent duplicate charges
+
+    CapturePaymentInput:
+      type: object
+      properties:
+        amountToCapture:
+          type: number
+          format: double
+          description: Amount to capture. Defaults to full authorized amount.
+
+    RefundPaymentInput:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+          description: Amount to refund. Defaults to remaining capturable amount.
+        reason:
+          type: string
+          enum: [duplicate, fraudulent, requested_by_customer]
+
+    Payment:
+      type: object
+      required: [id, orderId, customerId, amount, currency, status, idempotencyKey, refundedAmount, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        stripePaymentIntentId:
+          type: string
+          nullable: true
+        idempotencyKey:
+          type: string
+        refundedAmount:
+          type: number
+          format: double
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ReadinessResponse:
+      type: object
+      required: [status, checks]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]
+        checks:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [up, down]
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

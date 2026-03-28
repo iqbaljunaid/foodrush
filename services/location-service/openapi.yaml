@@ -1,0 +1,388 @@
+openapi: 3.1.0
+info:
+  title: FoodRush Location Service
+  version: 1.0.0
+  description: Geospatial location tracking with Redis GEOADD/GEORADIUS and geofence triggers
+  contact:
+    name: FoodRush Engineering
+
+servers:
+  - url: http://localhost:3004
+    description: Local development
+
+paths:
+  /healthz:
+    get:
+      operationId: getLiveness
+      summary: Liveness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                required: [status]
+
+  /readyz:
+    get:
+      operationId: getReadiness
+      summary: Readiness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+
+  /locations:
+    put:
+      operationId: updateLocation
+      summary: Update entity location
+      description: Stores the location and checks geofences for couriers
+      tags: [Locations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationUpdate'
+      responses:
+        '200':
+          description: Location updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [updated]
+                  geofenceEvents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GeofenceEvent'
+                required: [status]
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /locations/{entityId}:
+    get:
+      operationId: getLocation
+      summary: Get entity location
+      tags: [Locations]
+      parameters:
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Entity location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationData'
+        '404':
+          description: Location not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      operationId: deleteLocation
+      summary: Delete entity location
+      tags: [Locations]
+      parameters:
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: entityType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [courier, restaurant, customer]
+      responses:
+        '204':
+          description: Location deleted
+        '400':
+          description: Missing entityType
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /locations/nearby:
+    get:
+      operationId: findNearby
+      summary: Find nearby entities
+      tags: [Locations]
+      parameters:
+        - name: entityType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [courier, restaurant, customer]
+        - name: latitude
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+        - name: longitude
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+        - name: radiusKm
+          in: query
+          schema:
+            type: number
+            format: double
+            default: 5
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Nearby entities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NearbyResult'
+                required: [results]
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /geofences:
+    post:
+      operationId: registerGeofence
+      summary: Register a geofence zone
+      tags: [Geofences]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeofenceZone'
+      responses:
+        '201':
+          description: Geofence created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [created]
+                  id:
+                    type: string
+                required: [status, id]
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      operationId: listGeofences
+      summary: List all geofence zones
+      tags: [Geofences]
+      responses:
+        '200':
+          description: List of geofences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  zones:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GeofenceZone'
+                required: [zones]
+
+  /geofences/{id}:
+    delete:
+      operationId: deleteGeofence
+      summary: Delete a geofence zone
+      tags: [Geofences]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Geofence deleted
+
+components:
+  schemas:
+    GpsCoordinates:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+
+    LocationUpdate:
+      type: object
+      required: [entityId, entityType, latitude, longitude]
+      properties:
+        entityId:
+          type: string
+          format: uuid
+        entityType:
+          type: string
+          enum: [courier, restaurant, customer]
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        timestamp:
+          type: string
+          format: date-time
+
+    LocationData:
+      type: object
+      required: [latitude, longitude, timestamp]
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        timestamp:
+          type: string
+          format: date-time
+
+    NearbyResult:
+      type: object
+      required: [entityId, distanceKm]
+      properties:
+        entityId:
+          type: string
+          format: uuid
+        distanceKm:
+          type: number
+          format: double
+
+    GeofenceZone:
+      type: object
+      required: [id, name, center, radiusMeters, type, entityId]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        center:
+          $ref: '#/components/schemas/GpsCoordinates'
+        radiusMeters:
+          type: number
+          format: double
+        type:
+          type: string
+          enum: [pickup, delivery]
+        entityId:
+          type: string
+          format: uuid
+          description: The restaurant or customer ID this geofence belongs to
+
+    GeofenceEvent:
+      type: object
+      required: [eventType, zoneId, zoneName, zoneType, entityId, courierId, timestamp, location]
+      properties:
+        eventType:
+          type: string
+          enum: [entered, exited]
+        zoneId:
+          type: string
+        zoneName:
+          type: string
+        zoneType:
+          type: string
+          enum: [pickup, delivery]
+        entityId:
+          type: string
+          format: uuid
+        courierId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        location:
+          $ref: '#/components/schemas/GpsCoordinates'
+
+    ReadinessResponse:
+      type: object
+      required: [status, checks]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]
+        checks:
+          type: object
+          properties:
+            redis:
+              type: string
+              enum: [up, down]
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

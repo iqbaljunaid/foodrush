@@ -1,0 +1,151 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  sast-semgrep:
+    name: SAST — Semgrep
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config auto \
+            --config p/owasp-top-ten \
+            --config p/typescript \
+            --config p/nodejs \
+            --error \
+            --severity ERROR \
+            --severity WARNING \
+            --json \
+            --output semgrep-results.json \
+            services/
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: Check for critical/high findings
+        if: always()
+        run: |
+          if [ -f semgrep-results.json ]; then
+            CRITICAL=$(cat semgrep-results.json | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          results = data.get('results', [])
+          critical = [r for r in results if r.get('extra', {}).get('severity', '') in ('ERROR',)]
+          print(len(critical))
+          ")
+            echo "Critical/high findings: $CRITICAL"
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "::error::Found $CRITICAL critical/high SAST findings. Zero tolerance policy — failing build."
+              exit 1
+            fi
+          fi
+
+      - name: Upload SARIF
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-results
+          path: semgrep-results.json
+          retention-days: 30
+
+  sca-trivy:
+    name: SCA — Trivy
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - catalogue-service
+          - dispatch-service
+          - location-service
+          - notification-service
+          - order-service
+          - payment-service
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan (package.json)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: services/${{ matrix.service }}
+          format: table
+          exit-code: 1
+          severity: CRITICAL
+          ignore-unfixed: true
+
+      - name: Run Trivy config scan (Dockerfile)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: services/${{ matrix.service }}/Dockerfile
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+
+      - name: Run Trivy SBOM generation
+        if: github.ref == 'refs/heads/main'
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: services/${{ matrix.service }}
+          format: cyclonedx
+          output: sbom-${{ matrix.service }}.json
+
+      - name: Upload SBOM
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ matrix.service }}
+          path: sbom-${{ matrix.service }}.json
+          retention-days: 90
+
+  terraform-security:
+    name: Terraform Security — tfsec
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: infra/terraform
+          soft_fail: false
+
+  security-gate:
+    name: Security Gate
+    runs-on: ubuntu-latest
+    needs: [sast-semgrep, sca-trivy, terraform-security]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          if [ "${{ needs.sast-semgrep.result }}" != "success" ]; then
+            echo "::error::SAST scan failed"
+            exit 1
+          fi
+          if [ "${{ needs.sca-trivy.result }}" != "success" ]; then
+            echo "::error::SCA scan failed"
+            exit 1
+          fi
+          if [ "${{ needs.terraform-security.result }}" != "success" ]; then
+            echo "::error::Terraform security scan failed"
+            exit 1
+          fi
+          echo "All security scans passed"

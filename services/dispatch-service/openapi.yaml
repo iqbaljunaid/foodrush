@@ -1,0 +1,255 @@
+openapi: 3.1.0
+info:
+  title: FoodRush Dispatch Service
+  version: 1.0.0
+  description: Courier matching, GPS ingestion via WebSocket, and dispatch management
+  contact:
+    name: FoodRush Engineering
+
+servers:
+  - url: http://localhost:3003
+    description: Local development
+
+paths:
+  /healthz:
+    get:
+      operationId: getLiveness
+      summary: Liveness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                required: [status]
+
+  /readyz:
+    get:
+      operationId: getReadiness
+      summary: Readiness probe
+      tags: [Health]
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+
+  /dispatch/assign:
+    post:
+      operationId: assignCourier
+      summary: Assign nearest available courier to an order
+      tags: [Dispatch]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourierAssignmentRequest'
+      responses:
+        '200':
+          description: Courier assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourierAssignmentResult'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No available couriers found nearby
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /dispatch/nearby:
+    get:
+      operationId: findNearbyCouriers
+      summary: Find couriers near a location
+      tags: [Dispatch]
+      parameters:
+        - name: latitude
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+        - name: longitude
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+        - name: radiusKm
+          in: query
+          schema:
+            type: number
+            format: double
+            default: 5
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: List of nearby couriers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  couriers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NearbyCourier'
+                required: [couriers]
+        '400':
+          description: Invalid coordinates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ws/gps:
+    get:
+      operationId: gpsWebSocket
+      summary: WebSocket endpoint for courier GPS pings
+      description: |
+        Accepts WebSocket connections from couriers for real-time GPS tracking.
+        Send JSON messages with the GpsPing schema.
+        Receives acknowledgement or error responses.
+      tags: [WebSocket]
+      responses:
+        '101':
+          description: WebSocket upgrade
+
+components:
+  schemas:
+    GpsCoordinates:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+
+    GpsPing:
+      type: object
+      required: [courierId, latitude, longitude, timestamp]
+      properties:
+        courierId:
+          type: string
+          format: uuid
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        timestamp:
+          type: string
+          format: date-time
+        heading:
+          type: number
+          format: double
+          description: Heading in degrees (0-360)
+        speed:
+          type: number
+          format: double
+          description: Speed in km/h
+
+    CourierAssignmentRequest:
+      type: object
+      required: [orderId, restaurantId, pickupLocation, deliveryLocation]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        restaurantId:
+          type: string
+          format: uuid
+        pickupLocation:
+          $ref: '#/components/schemas/GpsCoordinates'
+        deliveryLocation:
+          $ref: '#/components/schemas/GpsCoordinates'
+        maxRadiusKm:
+          type: number
+          format: double
+          default: 5
+
+    CourierAssignmentResult:
+      type: object
+      required: [orderId, courierId, estimatedPickupMinutes, distanceKm]
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        courierId:
+          type: string
+          format: uuid
+        estimatedPickupMinutes:
+          type: integer
+        distanceKm:
+          type: number
+          format: double
+
+    NearbyCourier:
+      type: object
+      required: [courierId, distanceKm]
+      properties:
+        courierId:
+          type: string
+          format: uuid
+        distanceKm:
+          type: number
+          format: double
+
+    ReadinessResponse:
+      type: object
+      required: [status, checks]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]
+        checks:
+          type: object
+          properties:
+            kafka:
+              type: string
+              enum: [up, down]
+            redis:
+              type: string
+              enum: [up, down]
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string

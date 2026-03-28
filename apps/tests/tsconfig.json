@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "types": ["jest", "@testing-library/jest-native"],
+    "paths": {
+      "@foodrush/shared/*": ["../shared/src/*"],
+      "@foodrush/shared": ["../shared/src/index.ts"]
+    }
+  },
+  "include": [
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "e2e/**/*.ts",
+    "a11y/**/*.ts",
+    "performance/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

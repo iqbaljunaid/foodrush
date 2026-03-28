@@ -1,0 +1,10 @@
+node_modules
+dist
+*.md
+.git
+.gitignore
+.env
+.env.*
+Dockerfile
+.dockerignore
+tsconfig.base.json

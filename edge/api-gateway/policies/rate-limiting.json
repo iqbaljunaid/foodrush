@@ -1,0 +1,23 @@
+{
+  "default": {
+    "rate_in_requests_per_second": 50,
+    "rate_key": "CLIENT_IP"
+  },
+  "tiers": {
+    "strict": {
+      "rate_in_requests_per_second": 10,
+      "rate_key": "CLIENT_IP",
+      "description": "Strict limit for sensitive endpoints (auth, payments)"
+    },
+    "standard": {
+      "rate_in_requests_per_second": 50,
+      "rate_key": "CLIENT_IP",
+      "description": "Standard limit for most API endpoints"
+    },
+    "relaxed": {
+      "rate_in_requests_per_second": 200,
+      "rate_key": "CLIENT_IP",
+      "description": "Relaxed limit for read-heavy public endpoints (catalogues, menus)"
+    }
+  }
+}
