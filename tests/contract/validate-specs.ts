@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { parse } from 'yaml';
-import OpenAPIParser from '@readme/openapi-parser';
+import { validate } from '@readme/openapi-parser';
 
 const SERVICES_DIR = resolve(import.meta.dirname, '../../services');
 
@@ -41,7 +41,7 @@ export async function validateSpec(
     }
 
     // Validate with parser (dereferences and validates)
-    await OpenAPIParser.validate(specPath);
+    await validate(specPath);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     errors.push(`Validation failed: ${message}`);

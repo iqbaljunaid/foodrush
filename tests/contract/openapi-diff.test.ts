@@ -3,7 +3,7 @@ import { execSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { parse } from 'yaml';
-import OpenAPIParser from '@readme/openapi-parser';
+import { dereference } from '@readme/openapi-parser';
 import {
   SERVICES,
   SERVICES_DIR,
@@ -179,7 +179,7 @@ describe('OpenAPI Contract Tests', () => {
     });
 
     it('should parse and dereference without errors', async () => {
-      const api = await OpenAPIParser.dereference(specPath);
+      const api = await dereference(specPath);
       expect(api).toBeDefined();
       expect(api.openapi).toMatch(/^3\.1/);
     });

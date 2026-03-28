@@ -7,7 +7,7 @@ COPY package.json package-lock.json* ./
 RUN npm ci --ignore-scripts
 
 COPY tsconfig.json ./
-COPY ../../tsconfig.base.json ./tsconfig.base.json
+COPY --from=root tsconfig.base.json ./tsconfig.base.json
 COPY src/ ./src/
 
 RUN npm run build
