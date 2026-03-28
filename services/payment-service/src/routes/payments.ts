@@ -54,12 +54,10 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
         !paymentMethodId ||
         !idempotencyKey
       ) {
-        return reply
-          .status(400)
-          .send({
-            error:
-              "orderId, customerId, amount, paymentMethodId, and idempotencyKey are required",
-          });
+        return reply.status(400).send({
+          error:
+            "orderId, customerId, amount, paymentMethodId, and idempotencyKey are required",
+        });
       }
 
       if (amount <= 0) {
@@ -289,11 +287,9 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
 
         if (refundAmount <= 0 || refundAmount > maxRefundable) {
           await connection.rollback();
-          return reply
-            .status(400)
-            .send({
-              error: `Invalid refund amount. Max refundable: ${maxRefundable}`,
-            });
+          return reply.status(400).send({
+            error: `Invalid refund amount. Max refundable: ${maxRefundable}`,
+          });
         }
 
         await createRefund(

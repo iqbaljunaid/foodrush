@@ -140,11 +140,9 @@ export async function menuRoutes(app: FastifyInstance): Promise<void> {
     } = request.query;
 
     if (!catalogueId && !restaurantId) {
-      return reply
-        .status(400)
-        .send({
-          error: "catalogueId or restaurantId query parameter is required",
-        });
+      return reply.status(400).send({
+        error: "catalogueId or restaurantId query parameter is required",
+      });
     }
 
     const parsedLimit = Math.min(parseInt(limit, 10) || 50, 200);

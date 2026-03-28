@@ -38,12 +38,10 @@ export async function catalogueRoutes(app: FastifyInstance): Promise<void> {
       const { restaurantId, name, description, category } = request.body;
 
       if (!restaurantId || !name || !description || !category) {
-        return reply
-          .status(400)
-          .send({
-            error:
-              "Missing required fields: restaurantId, name, description, category",
-          });
+        return reply.status(400).send({
+          error:
+            "Missing required fields: restaurantId, name, description, category",
+        });
       }
 
       const id = uuidv4();

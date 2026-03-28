@@ -22,11 +22,9 @@ export async function notificationRoutes(app: FastifyInstance): Promise<void> {
         request.body;
 
       if (!recipientId || !channel || !destination || !body) {
-        return reply
-          .status(400)
-          .send({
-            error: "recipientId, channel, destination, and body are required",
-          });
+        return reply.status(400).send({
+          error: "recipientId, channel, destination, and body are required",
+        });
       }
 
       const validChannels: readonly NotificationChannelType[] = [
@@ -35,11 +33,9 @@ export async function notificationRoutes(app: FastifyInstance): Promise<void> {
         NotificationChannel.EMAIL,
       ];
       if (!validChannels.includes(channel)) {
-        return reply
-          .status(400)
-          .send({
-            error: `Invalid channel. Must be one of: ${validChannels.join(", ")}`,
-          });
+        return reply.status(400).send({
+          error: `Invalid channel. Must be one of: ${validChannels.join(", ")}`,
+        });
       }
 
       const id = uuidv4();

@@ -97,16 +97,3 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '
       process.exit(1);
     });
 }
-
-  if (hasFailures) {
-    console.error('OpenAPI validation failed for one or more services');
-    process.exit(1);
-  }
-
-  console.log('All OpenAPI specs are valid');
-}
-
-main().catch((err) => {
-  console.error('Validation script failed:', err);
-  process.exit(1);
-});
