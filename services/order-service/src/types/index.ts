@@ -1,11 +1,11 @@
 export const OrderStatus = {
-  PLACED: 'placed',
-  ACCEPTED: 'accepted',
-  PREPARING: 'preparing',
-  READY: 'ready',
-  PICKED_UP: 'picked_up',
-  DELIVERED: 'delivered',
-  CANCELLED: 'cancelled',
+  PLACED: "placed",
+  ACCEPTED: "accepted",
+  PREPARING: "preparing",
+  READY: "ready",
+  PICKED_UP: "picked_up",
+  DELIVERED: "delivered",
+  CANCELLED: "cancelled",
 } as const;
 
 export type OrderStatusType = (typeof OrderStatus)[keyof typeof OrderStatus];

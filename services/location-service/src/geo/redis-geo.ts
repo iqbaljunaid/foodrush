@@ -1,16 +1,16 @@
-import Redis from 'ioredis';
-import type { AppConfig } from '../config.js';
-import type { LocationUpdate, NearbyResult } from '../types/index.js';
+import { Redis } from "ioredis";
+import type { AppConfig } from "../config.js";
+import type { LocationUpdate, NearbyResult } from "../types/index.js";
 
 let redis: Redis | null = null;
 
-const GEO_KEY_PREFIX = 'geo:';
+const GEO_KEY_PREFIX = "geo:";
 
 function geoKey(entityType: string): string {
   return `${GEO_KEY_PREFIX}${entityType}`;
 }
 
-export function createRedisClient(config: AppConfig['redis']): Redis {
+export function createRedisClient(config: AppConfig["redis"]): Redis {
   redis = new Redis({
     host: config.host,
     port: config.port,
@@ -24,13 +24,15 @@ export function createRedisClient(config: AppConfig['redis']): Redis {
 
 export function getRedisClient(): Redis {
   if (!redis) {
-    throw new Error('Redis client not initialized. Call createRedisClient() first.');
+    throw new Error(
+      "Redis client not initialized. Call createRedisClient() first.",
+    );
   }
   return redis;
 }
 
 export function isRedisConnected(): boolean {
-  return redis?.status === 'ready';
+  return redis?.status === "ready";
 }
 
 export async function disconnectRedis(): Promise<void> {
@@ -64,17 +66,17 @@ export async function findNearby(
   const client = getRedisClient();
   const key = geoKey(entityType);
 
-  const results = await client.georadius(
+  const results = (await client.georadius(
     key,
     longitude,
     latitude,
     radiusKm,
-    'km',
-    'WITHDIST',
-    'ASC',
-    'COUNT',
+    "km",
+    "WITHDIST",
+    "ASC",
+    "COUNT",
     limit,
-  ) as Array<[string, string]>;
+  )) as Array<[string, string]>;
 
   return results.map(([entityId, distance]) => ({
     entityId,
@@ -88,14 +90,14 @@ export async function getLocation(
   const client = getRedisClient();
   const meta = await client.hgetall(`location:meta:${entityId}`);
 
-  if (!meta['latitude'] || !meta['longitude']) {
+  if (!meta["latitude"] || !meta["longitude"]) {
     return null;
   }
 
   return {
-    latitude: parseFloat(meta['latitude']),
-    longitude: parseFloat(meta['longitude']),
-    timestamp: meta['timestamp'] ?? new Date().toISOString(),
+    latitude: parseFloat(meta["latitude"]),
+    longitude: parseFloat(meta["longitude"]),
+    timestamp: meta["timestamp"] ?? new Date().toISOString(),
   };
 }
 
@@ -106,11 +108,14 @@ export async function getDistance(
 ): Promise<number | null> {
   const client = getRedisClient();
   const key = geoKey(entityType);
-  const distance = await client.geodist(key, entityA, entityB, 'km');
+  const distance = await client.geodist(key, entityA, entityB, "KM");
   return distance ? parseFloat(distance) : null;
 }
 
-export async function removeLocation(entityType: string, entityId: string): Promise<void> {
+export async function removeLocation(
+  entityType: string,
+  entityId: string,
+): Promise<void> {
   const client = getRedisClient();
   const key = geoKey(entityType);
   await client.zrem(key, entityId);

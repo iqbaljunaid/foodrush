@@ -12,20 +12,26 @@ function optionalEnv(name: string, fallback: string): string {
 
 export function loadConfig() {
   return {
-    port: parseInt(optionalEnv('PORT', '3004'), 10),
-    host: optionalEnv('HOST', '0.0.0.0'),
-    logLevel: optionalEnv('LOG_LEVEL', 'info'),
+    port: parseInt(optionalEnv("PORT", "3004"), 10),
+    host: optionalEnv("HOST", "0.0.0.0"),
+    logLevel: optionalEnv("LOG_LEVEL", "info"),
 
     redis: {
-      host: requireEnv('REDIS_HOST'),
-      port: parseInt(optionalEnv('REDIS_PORT', '6379'), 10),
-      password: requireEnv('REDIS_PASSWORD'),
-      tls: optionalEnv('REDIS_TLS', 'true') === 'true',
+      host: requireEnv("REDIS_HOST"),
+      port: parseInt(optionalEnv("REDIS_PORT", "6379"), 10),
+      password: requireEnv("REDIS_PASSWORD"),
+      tls: optionalEnv("REDIS_TLS", "true") === "true",
     },
 
     geofence: {
-      defaultPickupRadiusMeters: parseInt(optionalEnv('DEFAULT_PICKUP_RADIUS_M', '100'), 10),
-      defaultDeliveryRadiusMeters: parseInt(optionalEnv('DEFAULT_DELIVERY_RADIUS_M', '50'), 10),
+      defaultPickupRadiusMeters: parseInt(
+        optionalEnv("DEFAULT_PICKUP_RADIUS_M", "100"),
+        10,
+      ),
+      defaultDeliveryRadiusMeters: parseInt(
+        optionalEnv("DEFAULT_DELIVERY_RADIUS_M", "50"),
+        10,
+      ),
     },
   } as const;
 }

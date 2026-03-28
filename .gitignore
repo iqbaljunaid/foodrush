@@ -1,1 +1,3 @@
 worktree/
+node_modules/
+dist/

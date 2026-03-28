@@ -87,19 +87,3 @@ variable "payment_service_url" {
   type        = string
   default     = "http://payment-service.foodrush.svc.cluster.local:3006"
 }
-
-# --- Rate Limiting ---
-
-variable "rate_limit_rps" {
-  description = "Default rate limit in requests per second per client IP"
-  type        = number
-  default     = 50
-}
-
-# --- CORS ---
-
-variable "cors_allowed_origins" {
-  description = "List of allowed origins for CORS"
-  type        = list(string)
-  default     = ["https://foodrush.com", "https://www.foodrush.com"]
-}

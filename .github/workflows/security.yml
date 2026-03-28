@@ -77,7 +77,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Trivy filesystem scan (package.json)
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           scan-type: fs
           scan-ref: services/${{ matrix.service }}
@@ -87,7 +87,7 @@ jobs:
           ignore-unfixed: true
 
       - name: Run Trivy config scan (Dockerfile)
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           scan-type: config
           scan-ref: services/${{ matrix.service }}/Dockerfile
@@ -97,7 +97,7 @@ jobs:
 
       - name: Run Trivy SBOM generation
         if: github.ref == 'refs/heads/main'
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           scan-type: fs
           scan-ref: services/${{ matrix.service }}

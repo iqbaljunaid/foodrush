@@ -1,11 +1,11 @@
-import * as ons from 'oci-ons';
-import * as common from 'oci-common';
-import type { AppConfig } from '../config.js';
-import type { PushPayload } from '../types/index.js';
+import * as ons from "oci-ons";
+import * as common from "oci-common";
+import type { AppConfig } from "../config.js";
+import type { PushPayload } from "../types/index.js";
 
 let client: ons.NotificationDataPlaneClient | null = null;
 
-export function initPushClient(config: AppConfig['oci']): void {
+export function initPushClient(config: AppConfig["oci"]): void {
   const provider = new common.ConfigFileAuthenticationDetailsProvider(
     undefined,
     undefined,
@@ -13,12 +13,14 @@ export function initPushClient(config: AppConfig['oci']): void {
   client = new ons.NotificationDataPlaneClient({
     authenticationDetailsProvider: provider,
   });
-  client.region = config.region;
+  client.region = config.region as unknown as common.Region;
 }
 
 function getClient(): ons.NotificationDataPlaneClient {
   if (!client) {
-    throw new Error('Push notification client not initialized. Call initPushClient() first.');
+    throw new Error(
+      "Push notification client not initialized. Call initPushClient() first.",
+    );
   }
   return client;
 }

@@ -1,8 +1,12 @@
-import type { GpsCoordinates, GeofenceZone, GeofenceEvent } from '../types/index.js';
-import { getRedisClient } from './redis-geo.js';
+import type {
+  GpsCoordinates,
+  GeofenceZone,
+  GeofenceEvent,
+} from "../types/index.js";
+import { getRedisClient } from "./redis-geo.js";
 
-const GEOFENCE_KEY = 'geofences';
-const GEOFENCE_STATE_PREFIX = 'geofence:state:';
+const GEOFENCE_KEY = "geofences";
+const GEOFENCE_STATE_PREFIX = "geofence:state:";
 const EARTH_RADIUS_METERS = 6_371_000;
 
 function haversineDistance(a: GpsCoordinates, b: GpsCoordinates): number {
@@ -21,7 +25,12 @@ function haversineDistance(a: GpsCoordinates, b: GpsCoordinates): number {
 
 export async function registerGeofence(zone: GeofenceZone): Promise<void> {
   const redis = getRedisClient();
-  await redis.geoadd(GEOFENCE_KEY, zone.center.longitude, zone.center.latitude, zone.id);
+  await redis.geoadd(
+    GEOFENCE_KEY,
+    zone.center.longitude,
+    zone.center.latitude,
+    zone.id,
+  );
   await redis.hset(`geofence:meta:${zone.id}`, {
     name: zone.name,
     type: zone.type,
@@ -46,52 +55,52 @@ export async function checkGeofences(
   const events: GeofenceEvent[] = [];
 
   // Find geofences within 1km of courier position
-  const nearbyZones = await redis.georadius(
+  const nearbyZones = (await redis.georadius(
     GEOFENCE_KEY,
     location.longitude,
     location.latitude,
     1,
-    'km',
-  ) as string[];
+    "km",
+  )) as string[];
 
   for (const zoneId of nearbyZones) {
     const meta = await redis.hgetall(`geofence:meta:${zoneId}`);
-    if (!meta['centerLat'] || !meta['centerLon'] || !meta['radiusMeters']) {
+    if (!meta["centerLat"] || !meta["centerLon"] || !meta["radiusMeters"]) {
       continue;
     }
 
     const zoneCenter: GpsCoordinates = {
-      latitude: parseFloat(meta['centerLat']),
-      longitude: parseFloat(meta['centerLon']),
+      latitude: parseFloat(meta["centerLat"]),
+      longitude: parseFloat(meta["centerLon"]),
     };
-    const radiusMeters = parseFloat(meta['radiusMeters']);
+    const radiusMeters = parseFloat(meta["radiusMeters"]);
     const distance = haversineDistance(location, zoneCenter);
     const isInside = distance <= radiusMeters;
 
     const stateKey = `${GEOFENCE_STATE_PREFIX}${courierId}:${zoneId}`;
     const previousState = await redis.get(stateKey);
-    const wasInside = previousState === 'inside';
+    const wasInside = previousState === "inside";
 
     if (isInside && !wasInside) {
-      await redis.set(stateKey, 'inside');
+      await redis.set(stateKey, "inside");
       events.push({
-        eventType: 'entered',
+        eventType: "entered",
         zoneId,
-        zoneName: meta['name'] ?? zoneId,
-        zoneType: (meta['type'] as 'pickup' | 'delivery') ?? 'pickup',
-        entityId: meta['entityId'] ?? '',
+        zoneName: meta["name"] ?? zoneId,
+        zoneType: (meta["type"] as "pickup" | "delivery") ?? "pickup",
+        entityId: meta["entityId"] ?? "",
         courierId,
         timestamp: new Date().toISOString(),
         location,
       });
     } else if (!isInside && wasInside) {
-      await redis.set(stateKey, 'outside');
+      await redis.set(stateKey, "outside");
       events.push({
-        eventType: 'exited',
+        eventType: "exited",
         zoneId,
-        zoneName: meta['name'] ?? zoneId,
-        zoneType: (meta['type'] as 'pickup' | 'delivery') ?? 'pickup',
-        entityId: meta['entityId'] ?? '',
+        zoneName: meta["name"] ?? zoneId,
+        zoneType: (meta["type"] as "pickup" | "delivery") ?? "pickup",
+        entityId: meta["entityId"] ?? "",
         courierId,
         timestamp: new Date().toISOString(),
         location,
@@ -109,16 +118,16 @@ export async function listGeofences(): Promise<GeofenceZone[]> {
 
   for (const zoneId of zoneIds) {
     const meta = await redis.hgetall(`geofence:meta:${zoneId}`);
-    if (meta['centerLat'] && meta['centerLon']) {
+    if (meta["centerLat"] && meta["centerLon"]) {
       zones.push({
         id: zoneId,
-        name: meta['name'] ?? zoneId,
-        type: (meta['type'] as 'pickup' | 'delivery') ?? 'pickup',
-        entityId: meta['entityId'] ?? '',
-        radiusMeters: parseFloat(meta['radiusMeters'] ?? '100'),
+        name: meta["name"] ?? zoneId,
+        type: (meta["type"] as "pickup" | "delivery") ?? "pickup",
+        entityId: meta["entityId"] ?? "",
+        radiusMeters: parseFloat(meta["radiusMeters"] ?? "100"),
         center: {
-          latitude: parseFloat(meta['centerLat']),
-          longitude: parseFloat(meta['centerLon']),
+          latitude: parseFloat(meta["centerLat"]),
+          longitude: parseFloat(meta["centerLon"]),
         },
       });
     }

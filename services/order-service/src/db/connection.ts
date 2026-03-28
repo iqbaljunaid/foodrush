@@ -1,10 +1,10 @@
-import mysql from 'mysql2/promise';
-import type { Pool } from 'mysql2/promise';
-import type { AppConfig } from '../config.js';
+import mysql from "mysql2/promise";
+import type { Pool } from "mysql2/promise";
+import type { AppConfig } from "../config.js";
 
 let pool: Pool | null = null;
 
-export function createPool(config: AppConfig['db']): Pool {
+export function createPool(config: AppConfig["db"]): Pool {
   pool = mysql.createPool({
     host: config.host,
     port: config.port,
@@ -22,7 +22,7 @@ export function createPool(config: AppConfig['db']): Pool {
 
 export function getPool(): Pool {
   if (!pool) {
-    throw new Error('Database pool not initialized. Call createPool() first.');
+    throw new Error("Database pool not initialized. Call createPool() first.");
   }
   return pool;
 }

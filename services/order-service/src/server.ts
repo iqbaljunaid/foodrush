@@ -1,10 +1,10 @@
-import Fastify from 'fastify';
-import { loadConfig } from './config.js';
-import { createPool } from './db/connection.js';
-import { createProducer, disconnectProducer } from './events/producer.js';
-import { startConsumers, stopConsumers } from './consumers/index.js';
-import { healthRoutes } from './routes/health.js';
-import { orderRoutes } from './routes/orders.js';
+import Fastify from "fastify";
+import { loadConfig } from "./config.js";
+import { createPool } from "./db/connection.js";
+import { createProducer, disconnectProducer } from "./events/producer.js";
+import { startConsumers, stopConsumers } from "./consumers/index.js";
+import { healthRoutes } from "./routes/health.js";
+import { orderRoutes } from "./routes/orders.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -19,7 +19,7 @@ async function main(): Promise<void> {
   // Initialize infrastructure
   createPool(config.db);
   await createProducer(config.kafka);
-  await startConsumers(config.kafka, app.log);
+  await startConsumers();
 
   // Register routes
   await app.register(healthRoutes);
@@ -34,14 +34,14 @@ async function main(): Promise<void> {
     process.exit(0);
   };
 
-  process.on('SIGTERM', () => void shutdown('SIGTERM'));
-  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
 
   await app.listen({ port: config.port, host: config.host });
   app.log.info(`Order service listening on ${config.host}:${config.port}`);
 }
 
 main().catch((err) => {
-  console.error('Failed to start order service:', err);
+  console.error("Failed to start order service:", err);
   process.exit(1);
 });

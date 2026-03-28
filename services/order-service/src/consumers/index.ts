@@ -1,4 +1,7 @@
-import { startOrderPlacedConsumer, stopOrderPlacedConsumer } from './order-placed.consumer.js';
+import {
+  startOrderPlacedConsumer,
+  stopOrderPlacedConsumer,
+} from "./order-placed.consumer.js";
 
 export async function startConsumers(): Promise<void> {
   await startOrderPlacedConsumer();

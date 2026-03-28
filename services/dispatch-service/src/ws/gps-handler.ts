@@ -1,16 +1,16 @@
-import Redis from 'ioredis';
-import type { FastifyInstance } from 'fastify';
-import type { AppConfig } from '../config.js';
-import type { GpsPing, CourierLocation } from '../types/index.js';
-import { publishDispatchEvent } from '../events/producer.js';
-import { TOPICS, buildLocationUpdatedEvent } from '../events/schemas.js';
+import { Redis } from "ioredis";
+import type { FastifyInstance } from "fastify";
+import type { AppConfig } from "../config.js";
+import type { GpsPing, CourierLocation } from "../types/index.js";
+import { publishDispatchEvent } from "../events/producer.js";
+import { TOPICS, buildLocationUpdatedEvent } from "../events/schemas.js";
 
-const COURIER_GEO_KEY = 'couriers:locations';
-const COURIER_META_PREFIX = 'courier:meta:';
+const COURIER_GEO_KEY = "couriers:locations";
+const COURIER_META_PREFIX = "courier:meta:";
 
 let redis: Redis | null = null;
 
-export function createRedisClient(config: AppConfig['redis']): Redis {
+export function createRedisClient(config: AppConfig["redis"]): Redis {
   redis = new Redis({
     host: config.host,
     port: config.port,
@@ -24,13 +24,15 @@ export function createRedisClient(config: AppConfig['redis']): Redis {
 
 export function getRedisClient(): Redis {
   if (!redis) {
-    throw new Error('Redis client not initialized. Call createRedisClient() first.');
+    throw new Error(
+      "Redis client not initialized. Call createRedisClient() first.",
+    );
   }
   return redis;
 }
 
 export function isRedisConnected(): boolean {
-  return redis?.status === 'ready';
+  return redis?.status === "ready";
 }
 
 export async function disconnectRedis(): Promise<void> {
@@ -41,27 +43,32 @@ export async function disconnectRedis(): Promise<void> {
 }
 
 function isValidGpsPing(data: unknown): data is GpsPing {
-  if (typeof data !== 'object' || data === null) return false;
+  if (typeof data !== "object" || data === null) return false;
   const obj = data as Record<string, unknown>;
   return (
-    typeof obj['courierId'] === 'string' &&
-    typeof obj['latitude'] === 'number' &&
-    typeof obj['longitude'] === 'number' &&
-    typeof obj['timestamp'] === 'string'
+    typeof obj["courierId"] === "string" &&
+    typeof obj["latitude"] === "number" &&
+    typeof obj["longitude"] === "number" &&
+    typeof obj["timestamp"] === "string"
   );
 }
 
 export async function gpsWebSocketRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/ws/gps', { websocket: true }, (socket) => {
-    app.log.info('Courier GPS WebSocket connected');
+  app.get("/ws/gps", { websocket: true }, (socket) => {
+    app.log.info("Courier GPS WebSocket connected");
 
-    socket.on('message', (raw: Buffer) => {
+    socket.on("message", (raw: Buffer) => {
       void (async () => {
         try {
           const parsed: unknown = JSON.parse(raw.toString());
 
           if (!isValidGpsPing(parsed)) {
-            socket.send(JSON.stringify({ type: 'error', message: 'Invalid GPS ping format' }));
+            socket.send(
+              JSON.stringify({
+                type: "error",
+                message: "Invalid GPS ping format",
+              }),
+            );
             return;
           }
 
@@ -69,7 +76,12 @@ export async function gpsWebSocketRoutes(app: FastifyInstance): Promise<void> {
           const client = getRedisClient();
 
           // Store location in Redis geospatial index
-          await client.geoadd(COURIER_GEO_KEY, ping.longitude, ping.latitude, ping.courierId);
+          await client.geoadd(
+            COURIER_GEO_KEY,
+            ping.longitude,
+            ping.latitude,
+            ping.courierId,
+          );
 
           // Store courier metadata
           await client.hset(`${COURIER_META_PREFIX}${ping.courierId}`, {
@@ -95,16 +107,20 @@ export async function gpsWebSocketRoutes(app: FastifyInstance): Promise<void> {
             buildLocationUpdatedEvent(location),
           );
 
-          socket.send(JSON.stringify({ type: 'ack', courierId: ping.courierId }));
+          socket.send(
+            JSON.stringify({ type: "ack", courierId: ping.courierId }),
+          );
         } catch (err) {
-          app.log.error(err, 'Error processing GPS ping');
-          socket.send(JSON.stringify({ type: 'error', message: 'Processing error' }));
+          app.log.error(err, "Error processing GPS ping");
+          socket.send(
+            JSON.stringify({ type: "error", message: "Processing error" }),
+          );
         }
       })();
     });
 
-    socket.on('close', () => {
-      app.log.info('Courier GPS WebSocket disconnected');
+    socket.on("close", () => {
+      app.log.info("Courier GPS WebSocket disconnected");
     });
   });
 }

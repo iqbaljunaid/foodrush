@@ -1,9 +1,9 @@
-import { NoSQLClient, ServiceType } from 'oracle-nosqldb';
-import type { AppConfig } from '../config.js';
+import { NoSQLClient, ServiceType } from "oracle-nosqldb";
+import type { AppConfig } from "../config.js";
 
 let client: NoSQLClient | null = null;
 
-export function initNoSQLClient(config: AppConfig['nosql']): void {
+export function initNoSQLClient(config: AppConfig["nosql"]): void {
   const clientConfig = config.endpoint
     ? {
         serviceType: ServiceType.CLOUD,
@@ -20,12 +20,16 @@ export function initNoSQLClient(config: AppConfig['nosql']): void {
 
 export function getNoSQLClient(): NoSQLClient {
   if (!client) {
-    throw new Error('NoSQL client not initialized. Call initNoSQLClient first.');
+    throw new Error(
+      "NoSQL client not initialized. Call initNoSQLClient first.",
+    );
   }
   return client;
 }
 
-export async function checkNoSQLConnection(tableName: string): Promise<boolean> {
+export async function checkNoSQLConnection(
+  tableName: string,
+): Promise<boolean> {
   try {
     const c = getNoSQLClient();
     await c.getTable(tableName);

@@ -1,9 +1,9 @@
-import Fastify from 'fastify';
-import { loadConfig } from './config.js';
-import { createPool } from './db/connection.js';
-import { initStripeClient } from './stripe/client.js';
-import { healthRoutes } from './routes/health.js';
-import { paymentRoutes } from './routes/payments.js';
+import Fastify from "fastify";
+import { loadConfig } from "./config.js";
+import { createPool } from "./db/connection.js";
+import { initStripeClient } from "./stripe/client.js";
+import { healthRoutes } from "./routes/health.js";
+import { paymentRoutes } from "./routes/payments.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -30,14 +30,14 @@ async function main(): Promise<void> {
     process.exit(0);
   };
 
-  process.on('SIGTERM', () => void shutdown('SIGTERM'));
-  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
 
   await app.listen({ port: config.port, host: config.host });
   app.log.info(`Payment service listening on ${config.host}:${config.port}`);
 }
 
 main().catch((err) => {
-  console.error('Failed to start payment service:', err);
+  console.error("Failed to start payment service:", err);
   process.exit(1);
 });

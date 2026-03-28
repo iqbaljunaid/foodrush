@@ -1,8 +1,8 @@
-import Fastify from 'fastify';
-import { loadConfig } from './config.js';
-import { createRedisClient, disconnectRedis } from './geo/redis-geo.js';
-import { healthRoutes } from './routes/health.js';
-import { locationRoutes } from './routes/locations.js';
+import Fastify from "fastify";
+import { loadConfig } from "./config.js";
+import { createRedisClient, disconnectRedis } from "./geo/redis-geo.js";
+import { healthRoutes } from "./routes/health.js";
+import { locationRoutes } from "./routes/locations.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -29,14 +29,14 @@ async function main(): Promise<void> {
     process.exit(0);
   };
 
-  process.on('SIGTERM', () => void shutdown('SIGTERM'));
-  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
 
   await app.listen({ port: config.port, host: config.host });
   app.log.info(`Location service listening on ${config.host}:${config.port}`);
 }
 
 main().catch((err) => {
-  console.error('Failed to start location service:', err);
+  console.error("Failed to start location service:", err);
   process.exit(1);
 });

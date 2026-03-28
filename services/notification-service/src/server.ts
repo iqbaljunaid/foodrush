@@ -1,11 +1,14 @@
-import Fastify from 'fastify';
-import { loadConfig } from './config.js';
-import { initPushClient } from './channels/push.js';
-import { initSmsClient } from './channels/sms.js';
-import { initEmailClient } from './channels/email.js';
-import { createConsumer, disconnectConsumer } from './consumers/notification-consumer.js';
-import { healthRoutes } from './routes/health.js';
-import { notificationRoutes } from './routes/notifications.js';
+import Fastify from "fastify";
+import { loadConfig } from "./config.js";
+import { initPushClient } from "./channels/push.js";
+import { initSmsClient } from "./channels/sms.js";
+import { initEmailClient } from "./channels/email.js";
+import {
+  createConsumer,
+  disconnectConsumer,
+} from "./consumers/notification-consumer.js";
+import { healthRoutes } from "./routes/health.js";
+import { notificationRoutes } from "./routes/notifications.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -45,14 +48,16 @@ async function main(): Promise<void> {
     process.exit(0);
   };
 
-  process.on('SIGTERM', () => void shutdown('SIGTERM'));
-  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
 
   await app.listen({ port: config.port, host: config.host });
-  app.log.info(`Notification service listening on ${config.host}:${config.port}`);
+  app.log.info(
+    `Notification service listening on ${config.host}:${config.port}`,
+  );
 }
 
 main().catch((err) => {
-  console.error('Failed to start notification service:', err);
+  console.error("Failed to start notification service:", err);
   process.exit(1);
 });

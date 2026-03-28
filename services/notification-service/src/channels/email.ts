@@ -1,5 +1,5 @@
-import type { AppConfig } from '../config.js';
-import type { EmailPayload } from '../types/index.js';
+import type { AppConfig } from "../config.js";
+import type { EmailPayload } from "../types/index.js";
 
 interface EmailConfig {
   senderAddress: string;
@@ -9,7 +9,7 @@ interface EmailConfig {
 
 let emailConfig: EmailConfig | null = null;
 
-export function initEmailClient(config: AppConfig['email']): void {
+export function initEmailClient(config: AppConfig["email"]): void {
   emailConfig = {
     senderAddress: config.senderAddress,
     senderName: config.senderName,
@@ -19,7 +19,9 @@ export function initEmailClient(config: AppConfig['email']): void {
 
 function getConfig(): EmailConfig {
   if (!emailConfig) {
-    throw new Error('Email client not initialized. Call initEmailClient() first.');
+    throw new Error(
+      "Email client not initialized. Call initEmailClient() first.",
+    );
   }
   return emailConfig;
 }
@@ -42,19 +44,22 @@ export async function sendEmail(
   };
 
   // OCI Email Delivery via HTTPS endpoint
-  const response = await fetch(`${config.smtpEndpoint}/20220926/emailSubmittedResponses`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const response = await fetch(
+    `${config.smtpEndpoint}/20220926/emailSubmittedResponses`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(emailBody),
     },
-    body: JSON.stringify(emailBody),
-  });
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`Email delivery failed: ${response.status} ${errorText}`);
   }
 
-  const result = await response.json() as { messageId: string };
+  const result = (await response.json()) as { messageId: string };
   return { messageId: result.messageId };
 }

@@ -1,30 +1,32 @@
-import os from 'oci-objectstorage';
-import { ConfigFileAuthenticationDetailsProvider } from 'oci-common';
-import type { AppConfig } from '../config.js';
-import type { ImageUploadResult } from '../types/index.js';
+import os from "oci-objectstorage";
+import { ConfigFileAuthenticationDetailsProvider, Region } from "oci-common";
+import type { AppConfig } from "../config.js";
+import type { ImageUploadResult } from "../types/index.js";
 
 let objectStorageClient: os.ObjectStorageClient | null = null;
-let storageConfig: AppConfig['objectStorage'] | null = null;
+let storageConfig: AppConfig["objectStorage"] | null = null;
 
-export function initObjectStorage(config: AppConfig['objectStorage']): void {
+export function initObjectStorage(config: AppConfig["objectStorage"]): void {
   storageConfig = config;
   const provider = new ConfigFileAuthenticationDetailsProvider();
   objectStorageClient = new os.ObjectStorageClient({
     authenticationDetailsProvider: provider,
   });
-  objectStorageClient.region = config.region;
+  objectStorageClient.region = config.region as unknown as Region;
 }
 
 function getClient(): os.ObjectStorageClient {
   if (!objectStorageClient) {
-    throw new Error('Object storage client not initialized. Call initObjectStorage first.');
+    throw new Error(
+      "Object storage client not initialized. Call initObjectStorage first.",
+    );
   }
   return objectStorageClient;
 }
 
-function getConfig(): AppConfig['objectStorage'] {
+function getConfig(): AppConfig["objectStorage"] {
   if (!storageConfig) {
-    throw new Error('Object storage config not initialized.');
+    throw new Error("Object storage config not initialized.");
   }
   return storageConfig;
 }
@@ -38,7 +40,7 @@ export function validateImage(
   if (!config.allowedMimeTypes.includes(contentType)) {
     return {
       valid: false,
-      error: `Invalid content type: ${contentType}. Allowed: ${config.allowedMimeTypes.join(', ')}`,
+      error: `Invalid content type: ${contentType}. Allowed: ${config.allowedMimeTypes.join(", ")}`,
     };
   }
 

@@ -3,12 +3,6 @@ variable "compartment_id" {
   type        = string
 }
 
-variable "mesh_name" {
-  description = "Display name for the service mesh"
-  type        = string
-  default     = "foodrush-mesh"
-}
-
 variable "project" {
   description = "Project name prefix"
   type        = string
@@ -19,11 +13,6 @@ variable "environment" {
   description = "Deployment environment"
   type        = string
   default     = "prod"
-}
-
-variable "vcn_id" {
-  description = "OCID of the VCN the mesh operates in"
-  type        = string
 }
 
 variable "certificate_authority_id" {

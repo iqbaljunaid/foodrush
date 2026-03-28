@@ -19,6 +19,7 @@
     "fastify": "^5.0.0",
     "@fastify/multipart": "^9.0.0",
     "@fastify/sensible": "^6.0.0",
+    "oracle-nosqldb": "^5.5.0",
     "oci-nosql": "^2.89.0",
     "oci-objectstorage": "^2.89.0",
     "oci-common": "^2.89.0",

@@ -1,5 +1,5 @@
-import type { Order, OrderRow, OrderItem } from '../types/index.js';
-import type { OrderStatusType } from '../types/index.js';
+import type { Order, OrderRow, OrderItem } from "../types/index.js";
+import type { OrderStatusType } from "../types/index.js";
 
 export function rowToOrder(row: OrderRow): Order {
   return {

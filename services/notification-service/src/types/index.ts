@@ -1,18 +1,20 @@
 export const NotificationChannel = {
-  PUSH: 'push',
-  SMS: 'sms',
-  EMAIL: 'email',
+  PUSH: "push",
+  SMS: "sms",
+  EMAIL: "email",
 } as const;
 
-export type NotificationChannelType = (typeof NotificationChannel)[keyof typeof NotificationChannel];
+export type NotificationChannelType =
+  (typeof NotificationChannel)[keyof typeof NotificationChannel];
 
 export const NotificationStatus = {
-  PENDING: 'pending',
-  SENT: 'sent',
-  FAILED: 'failed',
+  PENDING: "pending",
+  SENT: "sent",
+  FAILED: "failed",
 } as const;
 
-export type NotificationStatusType = (typeof NotificationStatus)[keyof typeof NotificationStatus];
+export type NotificationStatusType =
+  (typeof NotificationStatus)[keyof typeof NotificationStatus];
 
 export interface NotificationRequest {
   recipientId: string;

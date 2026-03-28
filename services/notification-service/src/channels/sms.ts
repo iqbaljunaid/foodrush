@@ -1,11 +1,11 @@
-import * as ons from 'oci-ons';
-import * as common from 'oci-common';
-import type { AppConfig } from '../config.js';
-import type { SmsPayload } from '../types/index.js';
+import * as ons from "oci-ons";
+import * as common from "oci-common";
+import type { AppConfig } from "../config.js";
+import type { SmsPayload } from "../types/index.js";
 
 let client: ons.NotificationDataPlaneClient | null = null;
 
-export function initSmsClient(config: AppConfig['oci']): void {
+export function initSmsClient(config: AppConfig["oci"]): void {
   const provider = new common.ConfigFileAuthenticationDetailsProvider(
     undefined,
     undefined,
@@ -13,12 +13,12 @@ export function initSmsClient(config: AppConfig['oci']): void {
   client = new ons.NotificationDataPlaneClient({
     authenticationDetailsProvider: provider,
   });
-  client.region = config.region;
+  client.region = config.region as unknown as common.Region;
 }
 
 function getClient(): ons.NotificationDataPlaneClient {
   if (!client) {
-    throw new Error('SMS client not initialized. Call initSmsClient() first.');
+    throw new Error("SMS client not initialized. Call initSmsClient() first.");
   }
   return client;
 }
@@ -31,7 +31,7 @@ export async function sendSms(
 
   const messageDetails: ons.models.MessageDetails = {
     body: `FoodRush: ${payload.message}`,
-    title: 'FoodRush SMS',
+    title: "FoodRush SMS",
   };
 
   const response = await smsClient.publishMessage({

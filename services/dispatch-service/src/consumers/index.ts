@@ -1,4 +1,7 @@
-import { startCourierAssignedConsumer, stopCourierAssignedConsumer } from './courier-assigned.consumer.js';
+import {
+  startCourierAssignedConsumer,
+  stopCourierAssignedConsumer,
+} from "./courier-assigned.consumer.js";
 
 export async function startConsumers(): Promise<void> {
   await startCourierAssignedConsumer();

@@ -1,18 +1,18 @@
-import { Kafka, type Consumer, type EachMessagePayload } from 'kafkajs';
-import type { AppConfig } from '../config.js';
-import type { NotificationEvent } from '../types/index.js';
-import { NotificationChannel } from '../types/index.js';
-import { sendPushNotification } from '../channels/push.js';
-import { sendSms } from '../channels/sms.js';
-import { sendEmail } from '../channels/email.js';
+import { Kafka, type Consumer, type EachMessagePayload } from "kafkajs";
+import type { AppConfig } from "../config.js";
+import type { NotificationEvent } from "../types/index.js";
+import { NotificationChannel } from "../types/index.js";
+import { sendPushNotification } from "../channels/push.js";
+import { sendSms } from "../channels/sms.js";
+import { sendEmail } from "../channels/email.js";
 
-const TOPIC = 'notification.send';
+const TOPIC = "notification.send";
 
 let consumer: Consumer | null = null;
 let connected = false;
 
 export async function createConsumer(
-  config: AppConfig['kafka'],
+  config: AppConfig["kafka"],
   ociTopicId: string,
   emailSender: string,
   logger: { info: (msg: string) => void; error: (msg: string) => void },
@@ -22,7 +22,7 @@ export async function createConsumer(
     brokers: config.brokers,
     ssl: config.ssl ? true : undefined,
     sasl: {
-      mechanism: 'plain',
+      mechanism: "plain",
       username: config.saslUsername,
       password: config.saslPassword,
     },
@@ -39,7 +39,7 @@ export async function createConsumer(
       const { message } = messagePayload;
 
       if (!message.value) {
-        logger.error('Received message with no value');
+        logger.error("Received message with no value");
         return;
       }
 
@@ -49,7 +49,7 @@ export async function createConsumer(
         switch (event.payload.channel) {
           case NotificationChannel.PUSH:
             await sendPushNotification(ociTopicId, {
-              title: event.payload.subject ?? 'FoodRush',
+              title: event.payload.subject ?? "FoodRush",
               body: event.payload.body,
               deviceToken: event.payload.destination,
               data: event.payload.metadata,
@@ -66,7 +66,7 @@ export async function createConsumer(
           case NotificationChannel.EMAIL:
             await sendEmail({
               to: event.payload.destination,
-              subject: event.payload.subject ?? 'FoodRush Notification',
+              subject: event.payload.subject ?? "FoodRush Notification",
               bodyHtml: `<p>${event.payload.body}</p>`,
               bodyText: event.payload.body,
               from: emailSender,

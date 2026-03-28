@@ -1,8 +1,11 @@
-import type { CourierAssignmentRequest, CourierAssignmentResult } from '../types/index.js';
-import { getRedisClient } from '../ws/gps-handler.js';
+import type {
+  CourierAssignmentRequest,
+  CourierAssignmentResult,
+} from "../types/index.js";
+import { getRedisClient } from "../ws/gps-handler.js";
 
-const COURIER_GEO_KEY = 'couriers:locations';
-const COURIER_META_PREFIX = 'courier:meta:';
+const COURIER_GEO_KEY = "couriers:locations";
+const COURIER_META_PREFIX = "courier:meta:";
 const AVG_COURIER_SPEED_KMH = 30;
 
 export async function findNearbyCouriers(
@@ -12,17 +15,17 @@ export async function findNearbyCouriers(
 ): Promise<Array<{ courierId: string; distanceKm: number }>> {
   const redis = getRedisClient();
 
-  const results = await redis.georadius(
+  const results = (await redis.georadius(
     COURIER_GEO_KEY,
     pickupLocation.longitude,
     pickupLocation.latitude,
     radiusKm,
-    'km',
-    'WITHDIST',
-    'ASC',
-    'COUNT',
+    "km",
+    "WITHDIST",
+    "ASC",
+    "COUNT",
     maxResults,
-  ) as Array<[string, string]>;
+  )) as Array<[string, string]>;
 
   return results.map(([courierId, distance]) => ({
     courierId,
@@ -32,8 +35,11 @@ export async function findNearbyCouriers(
 
 async function isCourierAvailable(courierId: string): Promise<boolean> {
   const redis = getRedisClient();
-  const status = await redis.hget(`${COURIER_META_PREFIX}${courierId}`, 'status');
-  return status === 'available';
+  const status = await redis.hget(
+    `${COURIER_META_PREFIX}${courierId}`,
+    "status",
+  );
+  return status === "available";
 }
 
 export async function matchCourierToOrder(
@@ -48,7 +54,8 @@ export async function matchCourierToOrder(
   for (const candidate of nearbyCouriers) {
     const available = await isCourierAvailable(candidate.courierId);
     if (available) {
-      const estimatedPickupMinutes = (candidate.distanceKm / AVG_COURIER_SPEED_KMH) * 60;
+      const estimatedPickupMinutes =
+        (candidate.distanceKm / AVG_COURIER_SPEED_KMH) * 60;
 
       return {
         orderId: request.orderId,

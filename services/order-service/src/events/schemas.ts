@@ -1,15 +1,15 @@
-import { v4 as uuidv4 } from 'uuid';
-import type { Order, OrderEvent, OrderStatusType } from '../types/index.js';
+import { v4 as uuidv4 } from "uuid";
+import type { Order, OrderEvent, OrderStatusType } from "../types/index.js";
 
 export const TOPICS = {
-  ORDER_PLACED: 'order.placed',
-  ORDER_STATUS_CHANGED: 'order.status-changed',
+  ORDER_PLACED: "order.placed",
+  ORDER_STATUS_CHANGED: "order.status-changed",
 } as const;
 
 export function buildOrderPlacedEvent(order: Order): OrderEvent {
   return {
     eventId: uuidv4(),
-    eventType: 'order.placed',
+    eventType: "order.placed",
     orderId: order.id,
     timestamp: new Date().toISOString(),
     payload: {
@@ -30,7 +30,7 @@ export function buildOrderStatusChangedEvent(
 ): OrderEvent {
   return {
     eventId: uuidv4(),
-    eventType: 'order.status-changed',
+    eventType: "order.status-changed",
     orderId: order.id,
     timestamp: new Date().toISOString(),
     payload: {

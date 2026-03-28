@@ -1,17 +1,19 @@
-import { Kafka, type Producer } from 'kafkajs';
-import type { AppConfig } from '../config.js';
-import type { DispatchEvent } from '../types/index.js';
+import { Kafka, type Producer } from "kafkajs";
+import type { AppConfig } from "../config.js";
+import type { DispatchEvent } from "../types/index.js";
 
 let producer: Producer | null = null;
 let connected = false;
 
-export async function createProducer(config: AppConfig['kafka']): Promise<Producer> {
+export async function createProducer(
+  config: AppConfig["kafka"],
+): Promise<Producer> {
   const kafka = new Kafka({
     clientId: config.clientId,
     brokers: config.brokers,
     ssl: config.ssl ? true : undefined,
     sasl: {
-      mechanism: 'plain',
+      mechanism: "plain",
       username: config.saslUsername,
       password: config.saslPassword,
     },
@@ -29,12 +31,17 @@ export async function createProducer(config: AppConfig['kafka']): Promise<Produc
 
 export function getProducer(): Producer {
   if (!producer) {
-    throw new Error('Kafka producer not initialized. Call createProducer() first.');
+    throw new Error(
+      "Kafka producer not initialized. Call createProducer() first.",
+    );
   }
   return producer;
 }
 
-export async function publishDispatchEvent(topic: string, event: DispatchEvent): Promise<void> {
+export async function publishDispatchEvent(
+  topic: string,
+  event: DispatchEvent,
+): Promise<void> {
   const p = getProducer();
   await p.send({
     topic,
@@ -43,8 +50,8 @@ export async function publishDispatchEvent(topic: string, event: DispatchEvent):
         key: event.eventId,
         value: JSON.stringify(event),
         headers: {
-          'event-type': event.eventType,
-          'event-id': event.eventId,
+          "event-type": event.eventType,
+          "event-id": event.eventId,
         },
       },
     ],
@@ -53,6 +60,21 @@ export async function publishDispatchEvent(topic: string, event: DispatchEvent):
 
 export function isProducerConnected(): boolean {
   return connected;
+}
+
+export async function publishEvent(
+  topic: string,
+  event: Record<string, unknown>,
+): Promise<void> {
+  const p = getProducer();
+  await p.send({
+    topic,
+    messages: [
+      {
+        value: JSON.stringify(event),
+      },
+    ],
+  });
 }
 
 export async function disconnectProducer(): Promise<void> {

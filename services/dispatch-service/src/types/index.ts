@@ -1,14 +1,15 @@
 export const CourierStatus = {
-  AVAILABLE: 'available',
-  ASSIGNED: 'assigned',
-  EN_ROUTE_PICKUP: 'en_route_pickup',
-  AT_PICKUP: 'at_pickup',
-  EN_ROUTE_DELIVERY: 'en_route_delivery',
-  AT_DELIVERY: 'at_delivery',
-  OFFLINE: 'offline',
+  AVAILABLE: "available",
+  ASSIGNED: "assigned",
+  EN_ROUTE_PICKUP: "en_route_pickup",
+  AT_PICKUP: "at_pickup",
+  EN_ROUTE_DELIVERY: "en_route_delivery",
+  AT_DELIVERY: "at_delivery",
+  OFFLINE: "offline",
 } as const;
 
-export type CourierStatusType = (typeof CourierStatus)[keyof typeof CourierStatus];
+export type CourierStatusType =
+  (typeof CourierStatus)[keyof typeof CourierStatus];
 
 export interface GpsCoordinates {
   latitude: number;

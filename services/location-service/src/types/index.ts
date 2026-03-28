@@ -5,7 +5,7 @@ export interface GpsCoordinates {
 
 export interface LocationUpdate {
   entityId: string;
-  entityType: 'courier' | 'restaurant' | 'customer';
+  entityType: "courier" | "restaurant" | "customer";
   latitude: number;
   longitude: number;
   timestamp: string;
@@ -21,15 +21,15 @@ export interface GeofenceZone {
   name: string;
   center: GpsCoordinates;
   radiusMeters: number;
-  type: 'pickup' | 'delivery';
+  type: "pickup" | "delivery";
   entityId: string;
 }
 
 export interface GeofenceEvent {
-  eventType: 'entered' | 'exited';
+  eventType: "entered" | "exited";
   zoneId: string;
   zoneName: string;
-  zoneType: 'pickup' | 'delivery';
+  zoneType: "pickup" | "delivery";
   entityId: string;
   courierId: string;
   timestamp: string;

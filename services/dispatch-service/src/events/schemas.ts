@@ -1,16 +1,22 @@
-import { v4 as uuidv4 } from 'uuid';
-import type { CourierAssignmentResult, CourierLocation, DispatchEvent } from '../types/index.js';
+import { v4 as uuidv4 } from "uuid";
+import type {
+  CourierAssignmentResult,
+  CourierLocation,
+  DispatchEvent,
+} from "../types/index.js";
 
 export const TOPICS = {
-  COURIER_REQUESTS: 'dispatch.courier-requests',
-  COURIER_ASSIGNED: 'dispatch.courier-assigned',
-  LOCATION_UPDATED: 'dispatch.location-updated',
+  COURIER_REQUESTS: "dispatch.courier-requests",
+  COURIER_ASSIGNED: "dispatch.courier-assigned",
+  LOCATION_UPDATED: "dispatch.location-updated",
 } as const;
 
-export function buildCourierAssignedEvent(assignment: CourierAssignmentResult): DispatchEvent {
+export function buildCourierAssignedEvent(
+  assignment: CourierAssignmentResult,
+): DispatchEvent {
   return {
     eventId: uuidv4(),
-    eventType: 'dispatch.courier-assigned',
+    eventType: "dispatch.courier-assigned",
     timestamp: new Date().toISOString(),
     payload: {
       orderId: assignment.orderId,
@@ -21,10 +27,12 @@ export function buildCourierAssignedEvent(assignment: CourierAssignmentResult): 
   };
 }
 
-export function buildLocationUpdatedEvent(location: CourierLocation): DispatchEvent {
+export function buildLocationUpdatedEvent(
+  location: CourierLocation,
+): DispatchEvent {
   return {
     eventId: uuidv4(),
-    eventType: 'dispatch.location-updated',
+    eventType: "dispatch.location-updated",
     timestamp: new Date().toISOString(),
     payload: {
       courierId: location.courierId,
