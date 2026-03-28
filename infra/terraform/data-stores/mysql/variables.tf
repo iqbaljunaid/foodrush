@@ -49,7 +49,3 @@ variable "availability_domain" {
   type        = string
 }
 
-variable "nsg_data_id" {
-  description = "OCID of the data NSG"
-  type        = string
-}

@@ -65,12 +65,11 @@ resource "oci_apigateway_deployment" "v1" {
 
       # CORS
       cors {
-        allowed_origins              = local.cors.allowed_origins
-        allowed_methods              = local.cors.allowed_methods
-        allowed_headers              = local.cors.allowed_headers
-        exposed_headers              = local.cors.exposed_headers
-        is_allow_credentials_allowed = local.cors.is_allow_credentials_allowed
-        max_age_in_seconds           = local.cors.max_age_in_seconds
+        allowed_origins     = local.cors.allowed_origins
+        allowed_methods     = local.cors.allowed_methods
+        allowed_headers     = local.cors.allowed_headers
+        exposed_headers     = local.cors.exposed_headers
+        max_age_in_seconds  = local.cors.max_age_in_seconds
       }
 
       # Default rate limit

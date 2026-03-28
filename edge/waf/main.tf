@@ -224,6 +224,7 @@ resource "oci_waf_web_app_firewall_policy" "main" {
   request_rate_limiting {
     rules {
       name        = "ip-rate-limit"
+      type        = "RATE_LIMITING"
       action_name = "rate_limit_block"
       condition   = ""
       condition_language = "JMESPATH"
@@ -237,6 +238,7 @@ resource "oci_waf_web_app_firewall_policy" "main" {
 
     rules {
       name        = "api-burst-protection"
+      type        = "RATE_LIMITING"
       action_name = "rate_limit_block"
       condition   = "i_contains(httpRequest.url, '/api/')"
       condition_language = "JMESPATH"

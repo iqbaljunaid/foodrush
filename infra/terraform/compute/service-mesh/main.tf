@@ -67,7 +67,7 @@ resource "oci_service_mesh_virtual_deployment" "services" {
     is_enabled = true
   }
 
-  listener {
+  listeners {
     port     = each.value
     protocol = "HTTP"
   }

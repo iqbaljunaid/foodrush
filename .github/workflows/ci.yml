@@ -34,12 +34,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: services/${{ matrix.service }}/package-lock.json
 
       - name: Install dependencies
         working-directory: services/${{ matrix.service }}
-        run: npm ci
+        run: npm install
 
       - name: ESLint
         working-directory: services/${{ matrix.service }}
@@ -70,12 +68,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: services/${{ matrix.service }}/package-lock.json
 
       - name: Install dependencies
         working-directory: services/${{ matrix.service }}
-        run: npm ci
+        run: npm install
 
       - name: TypeScript compile
         working-directory: services/${{ matrix.service }}
@@ -93,12 +89,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: tests/contract/package-lock.json
 
       - name: Install dependencies
         working-directory: tests/contract
-        run: npm ci
+        run: npm install
 
       - name: Validate OpenAPI specs
         working-directory: tests/contract
